@@ -8,6 +8,8 @@ All notable changes to this project are recorded here. Format loosely follows [K
 
 - Repository created with full documentation, ahead of any code:
   README, CONTRIBUTING, GDD snapshot (2026-09-27), architecture, constants reference, save-data format, roadmap, test plan, club leader guide and three ADRs.
+- `tools/sprite-kit.html`: dev-only sprite kit with every ship, enemy, UI, laser, explosion and proposed power-up sprite as string grids, a Hangar palette preview, a live run-screen mock-up, and grid/PNG/sprite-sheet/atlas export. Grids are ready to paste into `game.js` for M3.
+- `tools/screens.html`: dev-only mock-ups of all eight screens (Title, How to play, Hangar, Run HUD, Pause, Recap, Leaderboard, Word Collection) at desktop 960×540 and mobile 390×844, with sample data.
 
 ### Design
 

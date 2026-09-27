@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLB Sprite Kit</title>
+<!--
+  Last Letter Blaster sprite kit (dev tool, not part of the game).
+  Previews every sprite grid with Hangar palette swaps and exports grids (JS), PNGs, a sprite sheet and atlas JSON.
+  Open from disk. Optional query params: ?scene=0 hides the run preview, ?export=1|2|4 (default 4), ?display=0.5..1.5 (default 1).
+  Ported from the claude.ai design "Pixel Sprites.dc.html"; keep the grids here and in game.js in sync.
+-->
+<style>
+body { margin: 0; background: #0E1030; color: #F4F4F8; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; -webkit-font-smoothing: antialiased; }
+a { color: #FFD93D; }
+a:hover { color: #F4F4F8; }
+.page { max-width: 1200px; margin: 0 auto; padding: 40px 28px 80px; display: flex; flex-direction: column; gap: 40px; }
+header { display: flex; flex-direction: column; gap: 10px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #FFD93D; }
+h1 { margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+h2 { margin: 0; font-size: 16px; font-weight: 700; }
+.lead { margin: 0; max-width: 720px; font-size: 13px; line-height: 1.6; color: #A3A8D1; text-wrap: pretty; }
+.lead b { color: #F4F4F8; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.toast { font-size: 12px; color: #3DDC84; }
+button { font: 700 12px ui-monospace, Menlo, monospace; color: #F4F4F8; background: transparent; border: 1px solid #3A4090; border-radius: 4px; padding: 7px 12px; cursor: pointer; }
+button:hover { background: #22275A; }
+button.primary { color: #0E1030; background: #FFD93D; border: 0; padding: 8px 12px; }
+button.primary:hover { background: #FFE680; }
+button.small { font-size: 11px; padding: 5px 9px; }
+button.shape { padding: 6px 12px; }
+button.shape.on, button.shape.on:hover { color: #0E1030; background: #FFD93D; }
+button.swatch { width: 28px; height: 28px; padding: 0; border: 2px solid transparent; box-shadow: inset 0 0 0 2px #0E1030; }
+button.swatch.on { border-color: #FFD93D; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.scene { gap: 10px; }
+.row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.row-head span { font-size: 11px; color: #A3A8D1; }
+canvas#scene { display: block; width: 100%; height: auto; image-rendering: pixelated; border: 1px solid #262B66; border-radius: 6px; background: #0E1030; }
+.panel { background: #161A44; border: 1px solid #262B66; border-radius: 6px; padding: 18px 20px; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.panel-head div { display: flex; gap: 8px; }
+.panel-head button { padding: 6px 10px; }
+.palette { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.palette > span { font-size: 12px; color: #A3A8D1; }
+.choices { display: flex; flex-wrap: wrap; gap: 6px; }
+.group-head { display: flex; flex-direction: column; gap: 4px; }
+.group-head p { margin: 0; font-size: 12px; line-height: 1.5; color: #A3A8D1; max-width: 760px; text-wrap: pretty; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+.card { background: #161A44; border: 1px solid #262B66; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
+.card-img { height: 150px; padding: 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: #0E1030; }
+.card-img img { image-rendering: pixelated; max-width: 100%; max-height: 126px; height: auto; object-fit: contain; }
+.card-body { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-top: 1px solid #262B66; }
+.card-body .name { font-size: 13px; font-weight: 700; }
+.card-body .meta { font-size: 11px; color: #A3A8D1; }
+.card-text { display: flex; flex-direction: column; gap: 3px; }
+.card-actions { display: flex; gap: 6px; }
+@media (max-width: 520px) {
+  .page { padding: 28px 16px 60px; }
+  .palette { grid-template-columns: 1fr; gap: 6px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <span class="eyebrow">LAST LETTER BLASTER · SPRITE KIT</span>
+    <h1>Pixel sprites</h1>
+    <p class="lead">Each sprite is a string grid in the GDD palette format (<b>. O M S W F</b>) and gets its colours by palette swap, matching decision 0001 (no image files). You can paste a grid straight into game.js. If you ever need image files, you can also export PNGs or a sprite sheet with atlas JSON.</p>
+    <div class="actions">
+      <button class="primary" id="copy-all">Copy all grids (JS)</button>
+      <button id="download-sheet">Sprite sheet PNG</button>
+      <button id="download-atlas">Atlas JSON</button>
+      <span class="toast" id="toast"></span>
+    </div>
+  </header>
+
+  <section class="scene" id="scene-section">
+    <div class="row-head"><h2>Run screen</h2><span>480 × 270 internal · 2× · smoothing off · cycles Light / Heavy / Mega</span></div>
+    <canvas id="scene" width="960" height="540"></canvas>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Hangar palette</h2>
+      <div><button id="club-colors">Club colors</button><button id="randomize">Random all</button></div>
+    </div>
+    <div class="palette">
+      <span>Ship shape</span><div class="choices" id="shapes"></div>
+      <span>Main colour</span><div class="choices" id="mains"></div>
+      <span>Second colour</span><div class="choices" id="seconds"></div>
+      <span>Laser colour</span><div class="choices" id="lasers"></div>
+    </div>
+  </section>
+
+  <div id="groups" style="display:flex;flex-direction:column;gap:40px"></div>
+</div>
+
+<script>
+'use strict';
+
+// ===== CONSTANTS =====
+
+const OUT = '#05060F', WIN = '#9FE8FF', BG = '#0E1030';
+const COLORS = [['white','#F4F4F8'],['silver','#A8B0C0'],['red','#E8394A'],['orange','#FF8A2A'],['yellow','#FFD93D'],['green','#3DDC84'],['blue','#3A7BFF'],['purple','#A45CFF']];
+const CLUB = ['#1E5FD9', '#FFC83D'];
+const LASER_COLORS = [['cyan','#3DF5FF'],['pink','#FF5CC8'],['lime','#B6FF3D'],['gold','#FFC83D'],['white','#FFFFFF'],['club',CLUB[0]]];
+const SHAPES = ['arrow','delta','saucer','twin'];
+
+// ===== SPRITE GRIDS =====
+
+const SHIPS = {
+  arrow: ['OOO','OSSOO','.OSSMOOO','..OMMMMMOOOO','.OMMMMMMWWMMOO','OSSMMMMMWWMMMMMO','.OMMMMMMWWMMOO','..OMMMMMOOOO','.OSSMOOO','OSSOO','OOO'],
+  delta: ['OO','OSOO','OSMMOO','OSMMMMOOO','OSSMMMMMMOOO','OSSMMMMWWWMMMOOO','OSSMMMMWWWMMMOOO','OSSMMMMMMOOO','OSMMMMOOO','OSMMOO','OSOO','OO'],
+  saucer: ['......OOOO','.....OWWWWO','....OWWWWWWO','....OWWWWWWO','..OOSSSSSSSSOO','.OMMMMMMMMMMMMO','OMSMMSMMSMMSMMSO','.OMMMMMMMMMMMMO','..OOMMMMMMMMOO','....OOOOOOOO'],
+  twin: ['OOOOOOOOOO','OSSSSMMMMMOOO','OMMMMMMMMMMMMO','.OOOOOOOOOOOOO','....OSO','...OMMMOOOO','..OMMMMWWWMOO','..OMMMMWWWMOO','...OMMMOOOO','....OSO','.OOOOOOOOOOOOO','OMMMMMMMMMMMMO','OSSSSMMMMMOOO','OOOOOOOOOO']
+};
+const FLAME = [['..FF','.FFF','..FF'], ['...F','FFFF','...F']];
+const ENEMIES = [
+  { id:'scout', name:'Scout', armor:1, color:'#3DDC84', grid:['....OOOO','..OOLLEEOO','.OLEEWWEEDO','OEEEEWWEEEDO','OEEEEEEEEEDO','.ODDEEEEDDO','..OODDDDOO','....OOOO'] },
+  { id:'fighter', name:'Fighter', armor:2, color:'#A45CFF', grid:['..........OOOO','........OOLEEDO','.....OOOLEEEDDO','..OOOLLEEEEEEEDO','OOWWEEEEEEEEEEDO','OOWWDEEEEEEEEEDO','..OOODDEEEEEEDDO','.....OOODDEEDDO','........OODDDDO','..........OOOO'] },
+  { id:'cruiser', name:'Cruiser', armor:3, color:'#FF4D5E', grid:['......OOOOOOOOO','....OOLLLLEEEEDOO','..OOLLEEEEEEEEEDDO','.OLEEEEEEEEEEEEEDDO','OWWEEEEOOOEEOOOEEEDO','OWWEEEEEEEEEEEEEEEDO','OWWEEEEEEEEEEEEEEEDO','OWWEEEEOOOEEOOOEEEDO','.ODEEEEEEEEEEEEEEDDO','..OODDEEEEEEEEEDDO','....OODDDDDDDDDOO','......OOOOOOOOO'] }
+];
+const POWERUPS = [
+  { id:'hint', name:'Hint', meta:'reveal a letter', color:'#FFD93D', glyph:['.XXX.','X...X','....X','..XX.','..X..','.....','..X..'] },
+  { id:'skip', name:'Skip word', meta:'new target letter', color:'#3A7BFF', glyph:['X...X..','.X...X.','..X...X','.X...X.','X...X..'] },
+  { id:'double', name:'Double points', meta:'×2 for 10 s', color:'#FF8A2A', glyph:['X.X.XXX','.X....X','X.X.XXX','....X..','....XXX'] },
+  { id:'shield', name:'Shield', meta:'blocks one hit', color:'#3DF5FF', glyph:['XXXXX','XXXXX','XXXXX','.XXX.','..X..'] },
+  { id:'slow', name:'Slow time', meta:'enemy at 50% for 5 s', color:'#A45CFF', glyph:['XXXXX','.X.X.','..X..','.XXX.','XXXXX'] },
+  { id:'bomb', name:'Letter bomb', meta:'clears the enemy', color:'#FF4D5E', glyph:['...XX','..X..','.XXX.','XXXXX','XXXXX','.XXX.'] },
+  { id:'synonym', name:'Synonym bonus', meta:'+ for a synonym of last word', color:'#3DDC84', glyph:['XXXXX','.....','XXXXX'] }
+];
+const HEART = ['.RR.RR.','RHRRRRR','RRRRRRR','.RRRRR.','..RRR..','...R...'];
+const PIP = ['.PP.','PPPP','PPPP','.PP.'];
+
+// ===== STATE =====
+
+const params = new URLSearchParams(location.search);
+const state = {
+  shape: 'arrow', main: '#F4F4F8', second: '#3A7BFF', laser: '#3DF5FF',
+  showScene: params.get('scene') !== '0',
+  exportScale: ['1', '2', '4'].includes(params.get('export')) ? parseInt(params.get('export'), 10) : 4,
+  displayScale: Math.min(1.5, Math.max(0.5, parseFloat(params.get('display')) || 1)),
+  stars: Array.from({ length: 70 }, (_, i) => ({ x: Math.random() * 480, y: Math.random() * 270, l: i % 3 })),
+  t0: 0, last: 0, toastT: 0,
+  cache: null, sceneBadge: null
+};
+
+// ===== SPRITE RENDERING =====
+
+function mix(a, b, t) {
+  const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const A = p(a), B = p(b);
+  return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join('');
+}
+function pad(g) { const w = Math.max(...g.map(r => r.length)); return g.map(r => r.padEnd(w, '.')); }
+function mk(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function draw(g, pal) {
+  g = pad(g);
+  const c = mk(g[0].length, g.length), x = c.getContext('2d');
+  g.forEach((r, y) => { for (let i = 0; i < r.length; i++) { const col = pal[r[i]]; if (col) { x.fillStyle = col; x.fillRect(i, y, 1, 1); } } });
+  return c;
+}
+function white(g) { const pal = {}; 'OMSWFELDRHPYCKG'.split('').forEach(k => pal[k] = '#FFFFFF'); return draw(g, pal); }
+function scaled(c, k) { const o = mk(c.width * k, c.height * k), x = o.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(c, 0, 0, o.width, o.height); return o; }
+function enemyPal(col) { return { O: OUT, W: WIN, E: col, L: mix(col, '#ffffff', 0.45), D: mix(col, '#000000', 0.35) }; }
+function powerGrid(glyph) {
+  const n = 14, g = [];
+  for (let y = 0; y < n; y++) {
+    let r = '';
+    for (let x = 0; x < n; x++) { const d = Math.hypot(x + 0.5 - 7, y + 0.5 - 7); r += d > 7 ? '.' : d > 6 ? 'O' : d > 4.8 ? 'C' : 'K'; }
+    g.push(r);
+  }
+  const gh = glyph.length, gw = glyph[0].length, ox = Math.floor((n - gw) / 2), oy = Math.floor((n - gh) / 2);
+  glyph.forEach((row, j) => { const a = g[oy + j].split(''); for (let i = 0; i < gw; i++) if (row[i] === 'X') a[ox + i] = 'G'; g[oy + j] = a.join(''); });
+  return g;
+}
+function badgeGrid() {
+  const n = 20, g = [];
+  for (let y = 0; y < n; y++) {
+    let r = '';
+    for (let x = 0; x < n; x++) {
+      const cx = Math.min(x, n - 1 - x), cy = Math.min(y, n - 1 - y), s = cx + cy;
+      r += s < 2 ? '.' : (s === 2 || cx === 0 || cy === 0) ? 'O' : y === n - 2 ? 'D' : (y === 1 && cx >= 2) ? 'L' : 'Y';
+    }
+    g.push(r);
+  }
+  return g;
+}
+function badge(letter, rare) {
+  const col = rare ? '#FF8A2A' : '#FFD93D';
+  const c = draw(badgeGrid(), { O: OUT, Y: col, L: mix(col, '#ffffff', 0.5), D: mix(col, '#000000', 0.25) });
+  const t = mk(20, 20), tx = t.getContext('2d');
+  tx.font = 'bold 14px monospace'; tx.textAlign = 'center'; tx.textBaseline = 'middle'; tx.fillStyle = OUT; tx.fillText(letter, 10, 10.5);
+  // Threshold the glyph's alpha so the letter stays crisp pixel art.
+  const d = tx.getImageData(0, 0, 20, 20);
+  for (let i = 3; i < d.data.length; i += 4) d.data[i] = d.data[i] > 100 ? 255 : 0;
+  tx.putImageData(d, 0, 0);
+  c.getContext('2d').drawImage(t, 0, 0);
+  return c;
+}
+function laserCanvas(tier, col) {
+  const spec = { light: [1, 0], heavy: [2, 4], mega: [3, 8] }[tier], w = spec[0], gl = spec[1];
+  const c = mk(64, 15), x = c.getContext('2d'), cy = 7;
+  if (gl) { const gh = w + gl; x.globalAlpha = tier === 'mega' ? 0.3 : 0.35; x.fillStyle = col; x.fillRect(0, cy - Math.floor(gh / 2), 64, gh); x.globalAlpha = 1; }
+  x.fillStyle = col; x.fillRect(0, cy - Math.floor(w / 2), 64, w);
+  if (tier === 'heavy') { x.fillStyle = '#FFFFFF'; x.fillRect(0, cy - 1, 3, 2); }
+  if (tier === 'mega') {
+    x.fillStyle = '#FFFFFF'; x.fillRect(0, cy, 64, 1); x.fillRect(0, cy - 2, 4, 5);
+    [[60, 2], [62, 5], [59, 11], [62, 12], [57, 4], [57, 10]].forEach(p => { x.fillStyle = p[0] % 2 ? col : '#FFFFFF'; x.fillRect(p[0], p[1], 1, 1); });
+  }
+  return c;
+}
+function explosion(f, col) {
+  const c = mk(24, 24), x = c.getContext('2d');
+  let s = 7;
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  if (f === 0) { x.fillStyle = '#FFC83D'; x.fillRect(8, 8, 8, 8); x.fillStyle = '#FFFFFF'; x.fillRect(10, 10, 4, 4); }
+  const n = 18, p = (f + 1) / 4;
+  for (let i = 0; i < n; i++) {
+    const a = rnd() * Math.PI * 2, sp = 0.5 + rnd() * 0.5;
+    if (f === 3 && i % 2) continue;
+    const r = 3 + sp * p * 9, sz = f < 2 ? 2 : 1;
+    x.fillStyle = ['#FFC83D', '#FFFFFF', col][i % 3];
+    x.fillRect(Math.round(12 + Math.cos(a) * r - sz / 2), Math.round(12 + Math.sin(a) * r - sz / 2), sz, sz);
+  }
+  return c;
+}
+
+// Builds every sprite for the current palette; cached until a colour changes (shape only picks among built ships).
+function build() {
+  const key = [state.main, state.second, state.laser].join();
+  if (state.cache && state.cache.key === key) return state.cache;
+  const shipPal = { O: OUT, W: WIN, M: state.main, S: state.second, F: state.laser };
+  const items = {};
+  const add = (group, it) => { (items[group] = items[group] || []).push(it); return it.canvas; };
+  const ships = {};
+  SHAPES.forEach(id => {
+    const g = pad(SHIPS[id]);
+    ships[id] = add('ships', { key: 'ship_' + id, name: id[0].toUpperCase() + id.slice(1), meta: g[0].length + '×' + g.length + ' · faces right', grid: g, pal: 'ship', canvas: draw(g, shipPal), k: 6 });
+  });
+  const flame = FLAME.map((g, i) => add('ships', { key: 'flame_' + (i ? 'b' : 'a'), name: 'Flame ' + (i ? 'B' : 'A'), meta: '4×3 · 16 fps · laser colour', grid: g, pal: 'ship', canvas: draw(g, shipPal), k: 12 }));
+  const enemies = {}, enemyWhite = {};
+  ENEMIES.forEach(e => {
+    const g = pad(e.grid);
+    enemies[e.id] = add('enemies', { key: 'enemy_' + e.id, name: e.name, meta: g[0].length + '×' + g.length + ' · ' + e.armor + ' armor · ' + e.color, grid: g, pal: 'enemy:' + e.color, canvas: draw(g, enemyPal(e.color)), k: 6 });
+    enemyWhite[e.id] = white(g);
+  });
+  add('enemies', { key: 'enemy_fighter_flash', name: 'Hit flash', meta: '0.1 s white silhouette', grid: null, canvas: enemyWhite.fighter, k: 6 });
+  add('ui', { key: 'badge', name: 'Letter badge', meta: '20×20 · #FFD93D', grid: badgeGrid(), pal: 'badge', canvas: badge('R', false), k: 5, gridNote: 'letter drawn on top' });
+  add('ui', { key: 'badge_rare', name: 'Badge · rare letter', meta: '20×20 · pulses on Q X Z', grid: null, canvas: badge('Q', true), k: 5 });
+  const pipF = add('ui', { key: 'pip_full', name: 'Armor pip · full', meta: '4×4 · #FF7AC8', grid: PIP, pal: 'pip', canvas: draw(PIP, { P: '#FF7AC8' }), k: 16 });
+  const pipE = add('ui', { key: 'pip_empty', name: 'Armor pip · lost', meta: '4×4 · 25% alpha', grid: null, canvas: draw(PIP, { P: 'rgba(255,122,200,0.25)' }), k: 16 });
+  const heartF = add('ui', { key: 'heart_full', name: 'Life · full', meta: '7×6 · #FF4D5E', grid: HEART, pal: 'heart', canvas: draw(HEART, { R: '#FF4D5E', H: '#FFB3BA' }), k: 10 });
+  const heartE = add('ui', { key: 'heart_empty', name: 'Life · lost', meta: '7×6 · 25% alpha', grid: null, canvas: draw(HEART, { R: 'rgba(244,244,248,0.25)', H: 'rgba(244,244,248,0.25)' }), k: 10 });
+  [['light', 'Light', '3–4 letters · 1 dmg · 1 px'], ['heavy', 'Heavy', '5–6 letters · 2 dmg · 2 px + glow'], ['mega', 'Mega', '7+ letters · 3 dmg · 3 px + core']]
+    .forEach(l => add('lasers', { key: 'laser_' + l[0], name: l[1] + ' laser', meta: l[2], grid: null, canvas: laserCanvas(l[0], state.laser), k: 3 }));
+  for (let f = 0; f < 4; f++) add('fx', { key: 'explosion_' + f, name: 'Explosion ' + (f + 1) + '/4', meta: '24×24 · fighter sparks', grid: null, canvas: explosion(f, '#A45CFF'), k: 5 });
+  POWERUPS.forEach(p => {
+    const g = powerGrid(p.glyph);
+    add('power', { key: 'power_' + p.id, name: p.name, meta: '14×14 · ' + p.meta, grid: g, pal: 'power:' + p.color, canvas: draw(g, { O: OUT, C: p.color, K: '#161A44', G: mix(p.color, '#ffffff', 0.35) }), k: 7 });
+  });
+  Object.values(items).flat().forEach(it => { it.url = it.canvas.toDataURL(); });
+  state.cache = { key, items, ships, flame, enemies, enemyWhite, pipF, pipE, heartF, heartE };
+  return state.cache;
+}
+
+// ===== EXPORT =====
+
+function gridJS(it) {
+  return 'const ' + it.key.toUpperCase() + ' = [\n' + it.grid.map(r => "  '" + r + "',").join('\n') + '\n]; // palette: ' + it.pal + (it.gridNote ? ' · ' + it.gridNote : '');
+}
+function downloadUrl(url, name) { const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+function savePng(canvas, name) { canvas.toBlob(b => downloadUrl(URL.createObjectURL(b), name)); }
+function pack() {
+  const all = Object.values(build().items).flat(), W = 256, P = 2, frames = {};
+  let x = P, y = P, rowH = 0;
+  all.forEach(it => {
+    const w = it.canvas.width, h = it.canvas.height;
+    if (x + w + P > W) { x = P; y += rowH + P; rowH = 0; }
+    frames[it.key] = { x, y, w, h, it };
+    x += w + P; rowH = Math.max(rowH, h);
+  });
+  const H = y + rowH + P, k = state.exportScale, c = mk(W * k, H * k), cx = c.getContext('2d');
+  cx.imageSmoothingEnabled = false;
+  Object.values(frames).forEach(f => cx.drawImage(f.it.canvas, f.x * k, f.y * k, f.w * k, f.h * k));
+  return { c, frames, k, W, H };
+}
+function downloadSheet() { const p = pack(); savePng(p.c, 'llb-sprites@' + p.k + 'x.png'); }
+function downloadAtlas() {
+  const p = pack(), frames = {};
+  Object.entries(p.frames).forEach(([k, f]) => {
+    const w = f.w * p.k, h = f.h * p.k;
+    frames[k] = { frame: { x: f.x * p.k, y: f.y * p.k, w, h }, rotated: false, trimmed: false, spriteSourceSize: { x: 0, y: 0, w, h }, sourceSize: { w, h } };
+  });
+  const json = JSON.stringify({ frames, meta: { image: 'llb-sprites@' + p.k + 'x.png', size: { w: p.W * p.k, h: p.H * p.k }, scale: String(p.k) } }, null, 2);
+  downloadUrl(URL.createObjectURL(new Blob([json], { type: 'application/json' })), 'llb-sprites@' + p.k + 'x.json');
+}
+function copyText(text, msg) {
+  const done = () => showToast(msg);
+  const fallback = () => {
+    const t = document.createElement('textarea');
+    t.value = text; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); } catch (e) { /* nothing else to try */ }
+    t.remove(); done();
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+}
+function copyAll() {
+  const all = Object.values(build().items).flat().filter(it => it.grid);
+  copyText('// Last Letter Blaster sprite grids\n' + all.map(gridJS).join('\n\n'), 'Copied ' + all.length + ' grids');
+}
+function showToast(msg) {
+  document.getElementById('toast').textContent = msg;
+  clearTimeout(state.toastT);
+  state.toastT = setTimeout(() => { document.getElementById('toast').textContent = ''; }, 1800);
+}
+
+// ===== RUN SCENE =====
+
+function drawScene(now) {
+  const c = document.getElementById('scene');
+  const x = c.getContext('2d'), dt = Math.max(0, Math.min(0.05, (now - state.last) / 1000)), t = Math.max(0, (now - state.t0) / 1000);
+  state.last = now;
+  const S = build(), ship = S.ships[state.shape], enemy = S.enemies.fighter;
+  const cycle = 1.8, phase = t % cycle, tier = Math.floor(t / cycle) % 3, dur = [0.12, 0.15, 0.2][tier], firing = phase < dur;
+  x.setTransform(2, 0, 0, 2, 0, 0); x.imageSmoothingEnabled = false;
+  if (firing && tier === 2) x.translate(Math.round(Math.random() * 4 - 2), Math.round(Math.random() * 4 - 2));
+  x.fillStyle = BG; x.fillRect(-4, -4, 488, 278);
+  const sp = [0.2, 0.5, 1], sc = ['#3A3F7A', '#8088C0', '#F4F4F8'];
+  state.stars.forEach(s => { s.x -= sp[s.l] * 30 * dt; if (s.x < 0) s.x += 480; x.fillStyle = sc[s.l]; x.fillRect(Math.round(s.x), Math.round(s.y), 1, 1); });
+  const knock = phase < 0.35 ? (tier + 1) * 8 * (1 - phase / 0.35) : 0;
+  const ex = Math.round(310 + knock), ey = Math.round(118 + Math.sin(t * 1.5 * Math.PI * 2) * 2);
+  const etop = ey - Math.floor(enemy.height / 2), eleft = ex - Math.floor(enemy.width / 2);
+  const sx = 28, sy = 135 - Math.floor(ship.height / 2);
+  if (firing) {
+    const col = state.laser, w = [1, 2, 3][tier], gl = [0, 4, 8][tier], x0 = sx + ship.width, y0 = 135.5, x1 = eleft, y1 = ey + 0.5;
+    x.lineCap = 'butt';
+    if (gl) { x.globalAlpha = 0.35; x.strokeStyle = col; x.lineWidth = w + gl; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y1); x.stroke(); x.globalAlpha = 1; }
+    x.strokeStyle = col; x.lineWidth = w; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y1); x.stroke();
+    if (tier === 2) { x.strokeStyle = '#FFFFFF'; x.lineWidth = 1; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y1); x.stroke(); }
+    if (tier) { x.fillStyle = '#FFFFFF'; x.fillRect(x0, 134, 3, 3); }
+  }
+  x.drawImage(phase > dur && phase < dur + 0.1 ? S.enemyWhite.fighter : enemy, eleft, etop);
+  if (!state.sceneBadge) state.sceneBadge = badge('E', false);
+  x.drawImage(state.sceneBadge, ex - 10, etop - 24);
+  const armorLeft = 2;
+  for (let i = 0; i < 2; i++) x.drawImage(i < armorLeft ? S.pipF : S.pipE, ex - 5 + i * 6, etop + enemy.height + 4);
+  x.drawImage(S.flame[Math.floor(t * 16) % 2], sx - 4, 134);
+  x.drawImage(ship, sx, sy);
+  [S.heartF, S.heartF, S.heartE].forEach((h, i) => x.drawImage(h, 6 + i * 10, 6));
+  x.textBaseline = 'top'; x.fillStyle = '#F4F4F8'; x.font = 'bold 8px monospace'; x.textAlign = 'center'; x.fillText('004250', 240, 6);
+  x.font = 'bold 6px monospace'; x.fillStyle = '#A3A8D1'; x.fillText('×1.4', 240, 16);
+  x.textAlign = 'right'; x.fillStyle = '#F4F4F8'; x.fillText('CHAIN 7', 474, 6); x.fillText('KILLS 12', 474, 14);
+  x.textAlign = 'left';
+  let wx = 6;
+  ['orange', 'eagle', 'apple', 'tiger', 'river', 'bread'].forEach((w, i) => { x.fillStyle = i ? '#A3A8D1' : '#FFC83D'; x.fillText(w, wx, 258); wx += x.measureText(w).width + 8; });
+}
+
+// ===== DOM RENDERING =====
+
+function el(tag, props, children) {
+  const e = document.createElement(tag);
+  Object.assign(e, props || {});
+  (children || []).forEach(ch => e.append(ch));
+  return e;
+}
+function setPalette(patch) { Object.assign(state, patch); renderPalette(); renderGroups(); }
+
+function renderPalette() {
+  document.getElementById('shapes').replaceChildren(...SHAPES.map(id =>
+    el('button', { className: 'shape' + (id === state.shape ? ' on' : ''), textContent: id, onclick: () => { state.shape = id; renderPalette(); } })));
+  const swatches = (list, field) => list.map(([id, hex]) => {
+    const b = el('button', { className: 'swatch' + (hex === state[field] ? ' on' : ''), title: id, onclick: () => setPalette({ [field]: hex }) });
+    b.style.background = hex;
+    return b;
+  });
+  document.getElementById('mains').replaceChildren(...swatches(COLORS, 'main'));
+  document.getElementById('seconds').replaceChildren(...swatches(COLORS, 'second'));
+  document.getElementById('lasers').replaceChildren(...swatches(LASER_COLORS, 'laser'));
+}
+
+const GROUPS = [
+  { id: 'ships', title: 'Player ships', note: 'Four Hangar shapes in the palette above. Slots: O outline, M main, S second, W window, F flame. Draw the flame 4 px behind the tail, centred on the middle row, and alternate A/B at 16 fps.' },
+  { id: 'enemies', title: 'Enemies', note: 'Fixed colours so players learn them. All face left. Palette: O outline, E body, L light (body + 45% white), D shade (body + 35% black), W window.' },
+  { id: 'ui', title: 'Badge, armor and lives', note: 'Badge sits 4 px above the enemy with the target letter in bold monospace; pips sit 4 px below, 6 px apart.' },
+  { id: 'lasers', title: 'Lasers', note: 'Shown in the selected laser colour. In game, draw beams as lines from the ship nose to the enemy; these strips are references for width and glow.' },
+  { id: 'fx', title: 'Explosion', note: '10 + 4 × armor sparks (18 for a Fighter), tinted gold, white and the enemy colour. 4 frames across about 0.5 s.' },
+  { id: 'power', title: 'Vocabulary power-ups (proposed)', note: 'The GDD currently lists power-ups as cut from MVP. These are here for a later version. Palette: O outline, C ring, K inside, G glyph.' }
+];
+
+function renderCard(it) {
+  const img = el('img', { src: it.url, width: Math.round(it.canvas.width * it.k * state.displayScale), alt: it.name });
+  const actions = [el('button', { className: 'small', textContent: 'PNG', onclick: () => savePng(scaled(it.canvas, state.exportScale), it.key + '.png') })];
+  if (it.grid) actions.push(el('button', { className: 'small', textContent: 'Copy grid', onclick: () => copyText(gridJS(it), 'Copied ' + it.key) }));
+  return el('div', { className: 'card' }, [
+    el('div', { className: 'card-img' }, [img]),
+    el('div', { className: 'card-body' }, [
+      el('div', { className: 'card-text' }, [el('span', { className: 'name', textContent: it.name }), el('span', { className: 'meta', textContent: it.meta })]),
+      el('div', { className: 'card-actions' }, actions)
+    ])
+  ]);
+}
+
+function renderGroups() {
+  const S = build();
+  document.getElementById('groups').replaceChildren(...GROUPS.map(g => el('section', {}, [
+    el('div', { className: 'group-head' }, [el('h2', { textContent: g.title }), el('p', { textContent: g.note })]),
+    el('div', { className: 'cards' }, S.items[g.id].map(renderCard))
+  ])));
+}
+
+// ===== BOOT =====
+
+function boot() {
+  document.getElementById('copy-all').onclick = copyAll;
+  document.getElementById('download-sheet').onclick = downloadSheet;
+  document.getElementById('download-atlas').onclick = downloadAtlas;
+  document.getElementById('club-colors').onclick = () => setPalette({ main: CLUB[0], second: CLUB[1] });
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  document.getElementById('randomize').onclick = () => {
+    state.shape = pick(SHAPES);
+    setPalette({ main: pick(COLORS)[1], second: pick(COLORS)[1], laser: pick(LASER_COLORS)[1] });
+  };
+  renderPalette();
+  renderGroups();
+  if (!state.showScene) { document.getElementById('scene-section').remove(); return; }
+  state.t0 = state.last = performance.now();
+  const loop = now => { requestAnimationFrame(loop); drawScene(now); };
+  requestAnimationFrame(loop);
+}
+
+boot();
+</script>
+</body>
+</html>
