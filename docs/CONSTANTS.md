@@ -1,0 +1,226 @@
+# Constants reference
+
+Every number, colour and string the game uses, with the constant name it gets at the top of `game.js`. When a value changes in code, change it here in the same commit.
+
+**Source** says where the value comes from:
+
+- **GDD** — specified in the Game Design Doc. Change the GDD first.
+- **Proposed** — not in the GDD; an implementation default chosen here. Free to tune.
+- **TBD** — waiting on the club (see open questions).
+
+## Club settings (top of the file)
+
+| Constant | Value | Source | Notes |
+| --- | --- | --- | --- |
+| `CLUB_WORD` | `'friendship'` (placeholder) | TBD | Club Word of the Week. Always added to the word list. Edited weekly; see [Club leader guide](CLUB_LEADER_GUIDE.md). |
+| `CLUB_COLORS` | `['#1E5FD9', '#FFC83D']` (placeholder) | TBD | Two values: main, second. Used by the **Club colors** button and the `club` laser colour (first value). |
+
+## Display
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `VIEW_W`, `VIEW_H` | 480, 270 | GDD |
+| `RENDER_SCALE` | 2 | GDD |
+| `BG_COLOR` | `'#0E1030'` | GDD |
+| `MAX_DT` | 0.05 s | Proposed |
+| `FONT_SMALL`, `FONT_BODY`, `FONT_LARGE`, `FONT_TITLE` | 6, 8, 12, 20 px | Proposed |
+| `FONT_FAMILY` | `'monospace'` (always bold) | GDD |
+
+## World and speed
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `SHIP_X`, `SHIP_Y` | 36, 135 | GDD |
+| `HIT_RADIUS` | 16 px | GDD |
+| `ENEMY_SPAWN_X` | 500 | GDD |
+| `ENEMY_SPAWN_Y_MIN`, `ENEMY_SPAWN_Y_MAX` | 56, 214 | GDD |
+| `ENEMY_BOB_PX` | 2 | GDD |
+| `ENEMY_BOB_HZ` | 1.5 | Proposed |
+| `SPEED_START` | 60 px/s | GDD |
+| `SPEED_RAMP` | 0.9 px/s per second | GDD |
+| `SPEED_MAX` | 260 px/s | GDD |
+| `SPEED_MIN` | 60 px/s | GDD |
+| `SPEED_HIT_PENALTY` | 20 px/s | GDD |
+| `RARE_SPEED_FACTOR` | 0.6 | GDD |
+| `RARE_LETTERS` | `'qxz'` | GDD |
+| `START_LETTERS` | `'abcdefghilmnoprstw'` | GDD |
+
+Derived check: from spawn to hit an enemy travels about 448 px, so 7.5 s at 60 px/s and 1.7 s at 260 px/s. Top speed is reached after (260 − 60) ÷ 0.9 ≈ 222 s (3 min 42 s) with no hits.
+
+## Enemies
+
+```js
+const ENEMY_TYPES = {
+  scout:   { armor: 1, speed: 1.0, w: 12, h: 8,  color: '#3DDC84' },
+  fighter: { armor: 2, speed: 0.9, w: 16, h: 10, color: '#A45CFF' },
+  cruiser: { armor: 3, speed: 0.8, w: 20, h: 12, color: '#FF4D5E' },
+};
+
+// Weights are [scout, fighter, cruiser]; the row whose `until` is first above run.elapsed wins.
+const SPAWN_TABLE = [
+  { until: 30,       weights: [100, 0, 0] },
+  { until: 60,       weights: [60, 40, 0] },
+  { until: 90,       weights: [40, 40, 20] },
+  { until: Infinity, weights: [30, 40, 30] },
+];
+```
+
+| Item | Source |
+| --- | --- |
+| Armor, speed factor, sizes, spawn weights | GDD |
+| Colour family (green, purple, red) | GDD |
+| Exact hex values | Proposed |
+
+## Lasers
+
+```js
+const LASERS = [
+  { id: 'light', minLen: 3, damage: 1, widthPx: 1, glowPx: 0, durationS: 0.12, shakePx: 0 },
+  { id: 'heavy', minLen: 5, damage: 2, widthPx: 2, glowPx: 4, durationS: 0.15, shakePx: 0 },
+  { id: 'mega',  minLen: 7, damage: 3, widthPx: 3, glowPx: 8, durationS: 0.20, shakePx: 2 },
+];
+const KNOCKBACK_PX_PER_DAMAGE = 8;
+```
+
+All values GDD except Mega `glowPx` ("wide glow"), which is Proposed.
+
+## Words and validation
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `WORD_MIN_LEN` | 3 | GDD |
+| `WORD_MAX_LEN` | 15 (word list filter only) | GDD |
+| `MSG_TOO_SHORT` | `'Too short'` | GDD |
+| `MSG_WRONG_LETTER` | `'Must start with '` + upper-case letter | GDD |
+| `MSG_UNKNOWN` | `'Not in word list'` | GDD |
+| `MSG_NO_ENEMY` | `'Wait for the next enemy'` | GDD |
+| `MSG_USED` | `'Already used'` (plus red flash in the strip) | Proposed |
+| `WORD_LIST_RAW` | 9,404 words, space-separated, bottom of file | GDD |
+
+## Lives
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `LIVES_START` | 3 | GDD |
+
+## Timers (seconds)
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `SPAWN_DELAY_START` | 1.0 | GDD |
+| `SPAWN_DELAY_KILL` | 0.4 | GDD |
+| `SPAWN_DELAY_HIT` | 1.0 | GDD |
+| `ENEMY_FLASH_S` | 0.1 | GDD |
+| `SHIP_BLINK_S` | 1.0 | GDD |
+| `SHIP_BLINK_HZ` | 10 | Proposed |
+| `DEATH_EXPLOSION_S` | 1.2 | GDD |
+| `INPUT_SHAKE_S` | 0.25 | GDD |
+| `RESUME_COUNTDOWN_S` | 3 | GDD |
+| `POPUP_S` | 1.0 | GDD |
+| `HIT_SHAKE_S` | 0.25 | GDD |
+| `HIT_SHAKE_PX` | 3 | Proposed |
+| `MESSAGE_S` | 1.5 | Proposed |
+| `ESC_DOUBLE_TAP_S` | 0.4 | GDD |
+| `USED_FLASH_S` | 0.5 | Proposed |
+| `FLAME_FPS` | 16 | GDD |
+| `BADGE_PULSE_HZ` | 3 | Proposed |
+
+## Scoring
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `POINTS_PER_LETTER` | 10 | GDD |
+| `MULT_SPEED_BASE` | 60 | GDD |
+| `MULT_SPEED_RANGE` | 200 | GDD |
+| `KILL_BONUS_PER_ARMOR` | 25 | GDD |
+
+`wordPoints(len, speed) = Math.round(POINTS_PER_LETTER × len × (1 + (speed − MULT_SPEED_BASE) ÷ MULT_SPEED_RANGE))`
+
+## Achievements
+
+```js
+const ACHIEVEMENTS = {
+  longShot:      { name: 'Long Shot',      bonus: 50,  repeat: 'always' },
+  oneShot:       { name: 'One Shot',       bonus: 100, repeat: 'always' },
+  rareLetter:    { name: 'Rare Letter',    bonus: 100, repeat: 'always' },
+  chainMaster:   { name: 'Chain Master',   bonus: 200, repeat: 'every10' },
+  doubleTrouble: { name: 'Double Trouble', bonus: 20,  repeat: 'always' },
+  clubSpirit:    { name: 'Club Spirit',    bonus: 300, repeat: 'once' },
+  newDiscovery:  { name: 'New Discovery',  bonus: 30,  repeat: 'always' },
+  speedDemon:    { name: 'Speed Demon',    bonus: 250, repeat: 'once' },
+  fullShields:   { name: 'Full Shields',   bonus: 150, repeat: 'once' },
+};
+const LONG_SHOT_LEN = 8;
+const CHAIN_MASTER_EVERY = 10;
+const FULL_SHIELDS_S = 60;
+```
+
+All GDD. Bonuses are flat (no speed multiplier).
+
+## Effects and world art
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `STAR_COUNT` | 70 | GDD |
+| `STAR_LAYER_SPEEDS` | `[0.2, 0.5, 1]` × drift | GDD |
+| `STAR_DRIFT_FACTOR` | 0.25 × enemy base speed | Proposed |
+| `SPARKS_BASE`, `SPARKS_PER_ARMOR` | 10, 4 | GDD |
+| `SPARK_LIFE_S` | 0.5 | Proposed |
+| `SHIP_HIT_SPARKS` | 16 | Proposed |
+
+## UI
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `LEADERBOARD_SIZE` | 10 | GDD |
+| `USED_STRIP_COUNT` | 6 | GDD |
+| `PILOT_NAME_MAX` | 12 | GDD |
+| `DEFAULT_PILOT_NAME` | `'PILOT'` | Proposed |
+| `BADGE_SIZE` | 20 px | GDD |
+| `PIP_SIZE` | 4 px | GDD |
+| `HANGAR_PREVIEW_SCALE` | 4 | GDD |
+| `HANGAR_DEMO_STEP_S` | 0.8 per laser tier | Proposed |
+| `FIRE_BUTTON_PX` | 56 (CSS px, in `index.html`) | GDD |
+| `PAUSE_BUTTON_PX` | 44 (CSS px, in `index.html`) | GDD |
+
+## Colours
+
+Names are GDD; hex values are Proposed and should be checked on the real background.
+
+| Constant | Ids → hex |
+| --- | --- |
+| `SHIP_MAIN_COLORS` | white `#F4F4F8`, silver `#A8B0C0`, red `#E8394A`, orange `#FF8A2A`, yellow `#FFD93D`, green `#3DDC84`, blue `#3A7BFF`, purple `#A45CFF` |
+| `SHIP_SECOND_COLORS` | Same ids and values as `SHIP_MAIN_COLORS` |
+| `LASER_COLORS` | cyan `#3DF5FF`, pink `#FF5CC8`, lime `#B6FF3D`, gold `#FFC83D`, white `#FFFFFF`, club → `CLUB_COLORS[0]` |
+| `OUTLINE_COLOR` | `#05060F` |
+| `WINDOW_COLOR` | `#9FE8FF` |
+| `BADGE_COLOR` / `BADGE_RARE_COLOR` | yellow `#FFD93D` / orange `#FF8A2A` |
+| `PIP_FULL_COLOR` / `PIP_EMPTY_ALPHA` | pink `#FF7AC8` / 0.25 |
+| `SCORE_POPUP_COLOR` | gold `#FFC83D` |
+| `ERROR_COLOR` | red `#FF4D5E` |
+| `HUD_TEXT_COLOR` | `#F4F4F8` |
+
+`SHIP_SHAPES = ['arrow', 'delta', 'saucer', 'twin']` (GDD).
+
+## Audio
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `MASTER_VOLUME` | 0.5 | GDD |
+| `KEY_VOLUME` | 0.1 | GDD |
+
+The per-event sound recipes (waveform, frequencies, length) follow the GDD's audio table and live in each `play…` function rather than as constants, except these reused values:
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `KEY_FREQ` | 880 Hz | GDD |
+| `LASER_SWEEP` | 1200 → 500 Hz | GDD |
+| `BUZZ_FREQ` | 110 Hz | GDD |
+| `CHIME_NOTES` | C5 E5 G5 (523.25, 659.25, 783.99 Hz) | GDD |
+
+## Storage
+
+| Constant | Value | Source |
+| --- | --- | --- |
+| `STORAGE_KEYS` | `{ ship: 'llb.ship', leaderboard: 'llb.leaderboard', collection: 'llb.collection', settings: 'llb.settings' }` | GDD |
+| `SAVE_VERSION` | 1 | Proposed |
