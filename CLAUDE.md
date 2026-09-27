@@ -1,0 +1,43 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project status
+
+Last Letter Blaster is a browser typing/space-shooter game for a school English Club: an enemy carries a letter, the player types a word starting with it, and the word's last letter becomes the next target. Word length sets laser damage.
+
+The repo is currently **documentation only**. `index.html` and `game.js` do not exist yet; they arrive in Milestone 1 of `docs/ROADMAP.md` by importing an external prototype and reshaping it to the architecture *without changing behaviour*. Check the roadmap to see which milestone is in progress before starting work.
+
+## Running and testing
+
+- No build step, no dependencies, no package manager. Run by opening `index.html` in a browser; it must also work when opened from disk (`file://`).
+- There is no automated test suite (see ADR 0001). Before merging, run the 5-minute smoke test in `docs/TESTING.md#smoke-test-5-minutes`.
+- Pure helpers (`wordPoints`, `killBonus`, `speedMultiplier`, `laserForLength`, `validateWord`) are meant to be checked from the browser console; expected values are in `docs/TESTING.md`.
+- Open with `?dev` to expose `window.llbDev` (`simulate(T, L, n)` tuning simulation, `setSpeed`, `setTarget`, `spawn`). Re-run the tuning simulation whenever speed, spawn delays, armor, lives or damage change.
+
+## Source of truth
+
+- `docs/GDD.md` specifies every behaviour, number and screen. A change not described there is a design change: update the GDD first. Items marked *Nice-to-have* or *Cut* in the GDD scope table are out of scope for MVP.
+- `docs/ARCHITECTURE.md` defines how `game.js` is built: section order, the full `state` / `createRun()` shape, the per-frame run-system order, the `SCREENS` table, and a list of **interpretations of ambiguous GDD rules** (Esc handling, score multiplier input, achievement edge cases, leaderboard ties…). Follow those interpretations rather than inventing new ones.
+- `docs/CONSTANTS.md` gives the constant name and value for every tuning number. When a constant changes in code, change it there in the same commit.
+- `docs/SAVE_DATA.md` defines the four `localStorage` keys (`llb.ship`, `llb.leaderboard`, `llb.collection`, `llb.settings`), their JSON shapes and migration rules.
+- `docs/decisions/` holds ADRs; add a new numbered one for any choice someone might later ask "why?" about.
+
+## Architecture rules (non-negotiable, from CONTRIBUTING.md)
+
+- **Two files only:** `index.html` (canvas, one `<input id="word">`, Fire and Pause buttons, minimal CSS) and `game.js` (~2,000 lines excluding the word list). No frameworks, bundler, npm packages, CDN links, or image/audio/font files. Sprites are string grids recoloured by palette swap, sound is synthesized WebAudio, text is bold system `monospace`.
+- **One `state` object** holds all mutable data; no other module-level `let`. Rebuildable caches (sprites, the word `Set`, icon cache) live under `state.cache` and are never saved.
+- **Constants at the top** in `UPPER_SNAKE_CASE`, no magic numbers in functions. `CLUB_WORD` and `CLUB_COLORS` sit at the very top so the club leader can edit them.
+- **Word list exception:** `WORD_LIST_RAW` is a ~70 KB string `const` at the bottom of the file, so `boot();` must be the **last line** of `game.js` (earlier access throws a `ReferenceError`).
+- **`game.js` sections** appear in the numbered order from ARCHITECTURE.md, each opened by a banner like `// ===== 4. STATE =====`.
+- **Function prefixes carry strict responsibilities:** `update…` changes state (never draws), `draw…` only draws (never mutates state), `layout…` returns button rects (shared by draw and hit-testing so they can't disagree), `handle…` turns input into event calls, `play…` only makes sound, `load…`/`save…` only touch storage, event verbs (`startRun`, `fireLaser`, `hitShip`, `endRun`) change state for one game event, and pure helpers never touch `state`.
+- **One `requestAnimationFrame` loop**; no `setTimeout`/`setInterval` for game logic. Timers are numbers in `state` counted down by `dt`, which is clamped to `MAX_DT`.
+- **Coordinates:** all drawing uses the internal 480 × 270 space (canvas is scaled 2× via `setTransform`, smoothing off). Time is in seconds and distance in internal pixels.
+- **Storage:** only `loadJson` / `saveJson` touch `localStorage`, always inside `try/catch`, and the game must stay fully playable when storage throws. Stored objects carry `v` (`SAVE_VERSION`). Colours and shapes are stored as ids, never hex. Writes happen only at defined save points, never during play.
+
+## Style and workflow
+
+- ES2020, `'use strict'`, 2-space indent, semicolons, single quotes, LF line endings (`.editorconfig`). Use `const` by default.
+- Branch names look like `feat/hangar`, `fix/rare-letter-speed`, `docs/save-format`. `main` must always be playable.
+- Commit subjects are imperative and short, optionally prefixed by area (`hud: show speed multiplier`).
+- When work lands, tick the matching box in `docs/ROADMAP.md` and add a line under *Unreleased* in `CHANGELOG.md`.
