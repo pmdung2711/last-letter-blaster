@@ -23,10 +23,10 @@ What players see: the word appears on the title screen. Typing it in a run (when
 Also at the top of `game.js`:
 
 ```js
-const CLUB_COLORS = ['#1E5FD9', '#FFC83D'];
+const CLUB_COLORS = ['#FB0615', '#FEF718'];
 ```
 
-The first value is the main (hull) colour, the second is the trim colour; the first also becomes the "club" laser colour. Values are hex colour codes; any online colour picker gives them. The current values are placeholders until the club decides.
+The first value is the main (hull) colour, the second is the trim colour; the first also becomes the "club" laser colour. Values are hex colour codes; any online colour picker gives them. The current values are the red and yellow of the club logo.
 
 ## Hosting
 

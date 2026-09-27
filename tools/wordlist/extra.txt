@@ -1,0 +1,55 @@
+# Words added on top of SCOWL. One word per line, a–z only; '#' starts a comment.
+# Add a word here when players type a real word and get "Not in word list".
+
+# X starts: real English has almost none, but any word ending in x (box, six, relax) makes X the target.
+xray
+xrays
+xmas
+xenon
+xerox
+xeroxed
+xylem
+xylophonist
+
+# Everyday modern words that SCOWL ranks as less common
+smartphone
+smartphones
+selfie
+selfies
+online
+offline
+app
+apps
+emoji
+emojis
+podcast
+podcasts
+hashtag
+hashtags
+username
+usernames
+texting
+texted
+webcam
+webcams
+wifi
+uploads
+uploaded
+spam
+spammed
+superhero
+superheroes
+anime
+manga
+
+# Food and culture players are likely to know
+karaoke
+sushi
+ninja
+ninjas
+pho
+durian
+lychee
+rambutan
+ramen
+kimchi

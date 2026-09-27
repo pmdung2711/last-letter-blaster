@@ -72,7 +72,7 @@ The lifetime Word Collection.
 
 - Loaded into `state.save.collection` as a `Set`; written back sorted.
 - A word is added the moment it is fired. "New" (for the New Discovery bonus and the recap chip marker) means it was **not** in the set before that shot.
-- Upper bound is the word list (≈ 9,400 words, under 100 KB as JSON), well inside the usual 5 MB quota.
+- Upper bound is the word list (≈ 45,000 words, about 500 KB as JSON), well inside the usual 5 MB quota. Real collections will be far smaller.
 
 ## `llb.settings`
 

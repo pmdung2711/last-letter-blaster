@@ -103,7 +103,7 @@ canvas#scene { display: block; width: 100%; height: auto; image-rendering: pixel
 
 const OUT = '#05060F', WIN = '#9FE8FF', BG = '#0E1030';
 const COLORS = [['white','#F4F4F8'],['silver','#A8B0C0'],['red','#E8394A'],['orange','#FF8A2A'],['yellow','#FFD93D'],['green','#3DDC84'],['blue','#3A7BFF'],['purple','#A45CFF']];
-const CLUB = ['#1E5FD9', '#FFC83D'];
+const CLUB = ['#FB0615', '#FEF718'];
 const LASER_COLORS = [['cyan','#3DF5FF'],['pink','#FF5CC8'],['lime','#B6FF3D'],['gold','#FFC83D'],['white','#FFFFFF'],['club',CLUB[0]]];
 const SHAPES = ['arrow','delta','saucer','twin'];
 
@@ -132,6 +132,65 @@ const POWERUPS = [
 ];
 const HEART = ['.RR.RR.','RHRRRRR','RRRRRRR','.RRRRR.','..RRR..','...R...'];
 const PIP = ['.PP.','PPPP','PPPP','.PP.'];
+// Hugo English Club logo, traced from assets/logo.jpg and redrawn at 66×56. K black, R/Y club red/yellow, W white text and edge.
+const LOGO = [
+  '..............................................WWWW................',
+  '..............................................WKKWW...............',
+  '.............................................WWKKKW...............',
+  '.............................................WKKKKW...............',
+  '.............................................WKKKKW...WWW.........',
+  '...........................WWWWWW............WKKKKW..WWYW.........',
+  '...........................WKKKKWW...........WKKKKW..WYWW.........',
+  '...........................WKKKKKWWWWWW......WKKKWW.WWYW..........',
+  '...........................WWKKKKKWWKKW......WKKKW.WWYYW..........',
+  '............................WWKKKKKKKKW......WKKKW.WYYYW..........',
+  '..........................WWWWKKKKKKKKWW.....WWKKWWWYYWW..........',
+  '........................WWWKKKKKKKKKKKKWWW....WKKWWYYYW...........',
+  '............WWWW.......WWKKKKKKKKKKKKKKKKWWW..WKKWYYYYW...........',
+  '...........WWKKWW......WKKKKKKKKKKKKKKKKKKKWW.WKKWYYYYW...........',
+  '...........WKKKKWW.....WWWKKKKKKKKKKKKKKKKKKWWWKKYYYYWW...........',
+  '...........WWKKKKWW......WWKKKKKKKKKKKKKKKKKKWWKYYYYYW............',
+  '............WKKKKKW.......WKKKKKKKKKKKKKKKKKKWWKYYYYYW............',
+  '............WWKKKKWW.....WWWKKKKKKKKKKKKKKKKKKWKYYYYYW............',
+  '.............WWKKKKWW...WWKKKKKKKKKKKKKKKKKKKKKYYYYYYWWWWW........',
+  '..............WWKKKKW...WKKKKKKKKKKKKKKKKKKKKKKYYYYYYRRRRWWWW.....',
+  '...............WWKKKWW..WKKKKKKKKKKKKKKKKKKKKKKYYYYYYYRRRRRRWW....',
+  '................WWKKKWW.WKKKKKKKKKKKKKKKKKKKKKKYYYYYYYRRRRRRRWW...',
+  '.................WWKKKW.WKKKKKKKKKKKKKKKKKKKKKKYYYYYYYYRRRRRRRWW..',
+  '..................WWKKWWWKKKKKKKKKKKKKKKKKKKKKRYYYYYYYYRRRRRRRRWW.',
+  '...................WKKKWWKKKKKKKKKKKKKKKKKKKKKRRYYYYYYYYRRRRRRRRW.',
+  '...................WWKKWKKKKKKKKKKKKKKKKKKKKKRRRYYYYYYYYYRRRRRRRWW',
+  '....................WKKKKKKKKKKKKKKKKKKKKKKKKRRRRYYYYYYYYYRRRRRRRW',
+  '....................WWKKKKKKKKKKKKKKKKKKKKKKRRRRRYYYYYYYYYRRRRRRRW',
+  '.....................WKKKKKKKKKKKKKKKKKKKKKKKKKKRRYYYYYYYYYRRRRRRW',
+  '.....................WWKKKKKKKKKKKKKKKKKKKKKKKKKRRRYYYYYYYYRRRRRRW',
+  'WWWWWWWWWWWWWWWWWWWWWWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKYYYYYYYYYRRRRRW',
+  'WKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKYYYYYYYYRRRRRW',
+  'WKWWKKKKKKWWKKWWKKKKKKWWKKKKWWWWWWWWKKKKKKKRRRRRRRRKKYYYYYYYRRRRRW',
+  'WKWWKKKKKKWWKKWWKKKKKKWWKKKWWWWWWWWWWKKKKKRRRRRRRRRRKKYYYYYYRRRRWW',
+  'WKWWKKKKKKWWKKWWKKKKKKWWKKKWWKKKKKKKKKKKKKRRKKKKKKRRKKYYYYYRRRRRW.',
+  'WKWWWWWWWWWWKKWWKKKKKKWWKKKWWKKKKKKKKKKKKKRRKKKKKKRRKKYYYYYRRRRWW.',
+  'WKWWWWWWWWWWKKWWKKKKKKWWKKKWWKKKWWWWWKKKKKRRKKKKKKRRKKYYYYRRRRRW..',
+  'WKWWKKKKKKWWKKWWKKKKKKWWKKKWWKKKWWWWWKKKKKRRKKKKKKRRKKYYYRRRRRWW..',
+  'WKWWKKKKKKWWKKWWKKKKKKWWKKKWWKKKKKKWWKKKKKRRKKKKKKRRKKYYRRRRWWW...',
+  'WKWWKKKKKKWWKKWWWWWWWWWWKKKWWWWWWWWWWKKKKKRRRRRRRRRRKKRRRRWWW.....',
+  'WKWWKKKKKKWWKKKWWWWWWWWKKKKKWWWWWWWWKKKKKKKRRRRRRRRKKRRRRKW.......',
+  'WKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKRRRRRWW.......',
+  'WWWWWWWWWWWWWWWWWWWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKWW........',
+  '.....................WKKKWWWKWWKKWWWKWKKKWWWKWWWKWKWKKKWW.........',
+  '.....................WKKKWKKKWKWKWKKKWKKKKWKKWKKKWKWKKKW..........',
+  '.....................WWKKWWKKWKWKWKWKWKKKKWKKWWWKWWWKKWW..........',
+  '......................WWKWKKKWKWKWKWKWKKKKWKKKKWKWKWKWW...........',
+  '.......................WKWWWKWKWKWWWKWWWKWWWKWWWKWKWKW............',
+  '.......................WKKKKKKKKKKKKKKKKKKKKKKKKKKKKKW............',
+  '.......................WWWWKKKKKKWWWKWKKKWKWKWWKKKKWWW............',
+  '..........................WWWKKKKWKKKWKKKWKWKWKWKKKW..............',
+  '............................WWWWKWKKKWKKKWKWKWWKKKWW..............',
+  '...............................WKWKKKWKKKWKWKWKWKWW...............',
+  '...............................WKWWWKWWWKWWWKWWKKW................',
+  '...............................WKKKKKKKKKKKKKKKKKW................',
+  '...............................WWWWWWWWWWWWWWWWWWW................',
+];
 
 // ===== STATE =====
 
@@ -256,6 +315,7 @@ function build() {
   [['light', 'Light', '3–4 letters · 1 dmg · 1 px'], ['heavy', 'Heavy', '5–6 letters · 2 dmg · 2 px + glow'], ['mega', 'Mega', '7+ letters · 3 dmg · 3 px + core']]
     .forEach(l => add('lasers', { key: 'laser_' + l[0], name: l[1] + ' laser', meta: l[2], grid: null, canvas: laserCanvas(l[0], state.laser), k: 3 }));
   for (let f = 0; f < 4; f++) add('fx', { key: 'explosion_' + f, name: 'Explosion ' + (f + 1) + '/4', meta: '24×24 · fighter sparks', grid: null, canvas: explosion(f, '#A45CFF'), k: 5 });
+  add('logo', { key: 'club_logo', name: 'Club logo', meta: '66×56 · club colours', grid: LOGO, pal: 'logo', canvas: draw(LOGO, { K: '#161515', R: CLUB[0], Y: CLUB[1], W: '#F4F4F8' }), k: 2 });
   POWERUPS.forEach(p => {
     const g = powerGrid(p.glyph);
     add('power', { key: 'power_' + p.id, name: p.name, meta: '14×14 · ' + p.meta, grid: g, pal: 'power:' + p.color, canvas: draw(g, { O: OUT, C: p.color, K: '#161A44', G: mix(p.color, '#ffffff', 0.35) }), k: 7 });
@@ -386,6 +446,7 @@ const GROUPS = [
   { id: 'ui', title: 'Badge, armor and lives', note: 'Badge sits 4 px above the enemy with the target letter in bold monospace; pips sit 4 px below, 6 px apart.' },
   { id: 'lasers', title: 'Lasers', note: 'Shown in the selected laser colour. In game, draw beams as lines from the ship nose to the enemy; these strips are references for width and glow.' },
   { id: 'fx', title: 'Explosion', note: '10 + 4 × armor sparks (18 for a Fighter), tinted gold, white and the enemy colour. 4 frames across about 0.5 s.' },
+  { id: 'logo', title: 'Club logo', note: 'The Hugo English Club logo as a string grid, so the no-image-files rule holds. Red and yellow come from CLUB_COLORS; the white edge keeps the black body readable on navy. Draw at 1× on the title screen (66×56 of the 480×270 canvas).' },
   { id: 'power', title: 'Vocabulary power-ups (proposed)', note: 'The GDD currently lists power-ups as cut from MVP. These are here for a later version. Palette: O outline, C ring, K inside, G glyph.' }
 ];
 

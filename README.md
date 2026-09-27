@@ -77,7 +77,7 @@ Only the files under `docs/` and the root Markdown files exist today.
 
 ## Open questions
 
-Tracked in the [GDD](docs/GDD.md#open-questions) and the [Roadmap](docs/ROADMAP.md#open-questions-blocking-or-affecting-mvp). The most pressing: the club colours for `CLUB_COLORS`, the word-list license, and a licence for this repo itself (none chosen yet).
+Tracked in the [GDD](docs/GDD.md#open-questions) and the [Roadmap](docs/ROADMAP.md#open-questions-blocking-or-affecting-mvp). The most pressing: a licence for this repo itself (none chosen yet).
 
 ## Credits
 

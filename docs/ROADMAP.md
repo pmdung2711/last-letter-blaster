@@ -70,7 +70,7 @@ Already working in the prototype (per GDD): typing, validation, chain; one enemy
 ## M7 — Club playtest → 1.0
 
 - [ ] Full test plan in [TESTING.md](TESTING.md) on the browser matrix
-- [ ] Set `CLUB_WORD` and `CLUB_COLORS`
+- [ ] Set `CLUB_WORD` (`CLUB_COLORS` is set from the club logo)
 - [ ] Host it (see [Club leader guide](CLUB_LEADER_GUIDE.md#hosting))
 - [ ] Club playtest session; record survival times, device mix, confusing moments
 - [ ] Answer the open questions below; update the GDD
@@ -80,8 +80,7 @@ Already working in the prototype (per GDD): typing, validation, chain; one enemy
 
 | Question | Blocks | Owner |
 | --- | --- | --- |
-| Club colours for `CLUB_COLORS` | M3 (Club colors button), M7 | Club |
-| Word list license; prune odd entries; add X words (only 9) | M7 release | Dung |
+| Word list size: SCOWL level 40 (≈ 45,000 words) is 5× the prototype's list; confirm in the playtest or lower the level in `tools/wordlist/build.mjs` | M7 release | Playtest |
 | Final name or working title | Title screen text, repo name | Dung / club |
 | Device mix of club members | How much M6 polish | Club survey |
 | Learner survival 2–3 min? | Tuning after M7 | Playtest |
